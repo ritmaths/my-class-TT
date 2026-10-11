@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dr. Srikantha N - Timetable</title>
+
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#090d16">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Force strictly no horizontal scroll on entire document */
+        html, body {
+            overflow-x: hidden !important;
+            width: 100vw;
+            touch-action: manipulation;
+        }
+
+        /* Responsive 9-column grid layout with vertical row spacing */
+        .tt-grid {
+            display: grid;
+            grid-template-columns: minmax(28px, 0.8fr) repeat(8, minmax(0, 1fr));
+            column-gap: 1.5px;
+            row-gap: 7px; /* Spacing equal to roughly half a letter height between rows */
+            width: 100%;
+        }
+
+        /* Maximized font sizes for header & cells */
+        .hdr-time-text {
+            font-size: clamp(0.5rem, 2.1vw, 0.75rem);
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+
+        .day-label-text {
+            font-size: clamp(0.6rem, 2.4vw, 0.8rem);
+            line-height: 1;
+        }
+
+        .course-cell-text {
+            font-size: clamp(0.62rem, 2.6vw, 0.85rem);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            word-break: break-word;
+        }
+
+        /* Today highlight animation */
+        @keyframes active-glow {
+            0%, 100% { border-color: rgba(99, 102, 241, 0.8); }
+            50% { border-color: rgba(165, 180, 252, 1); }
+        }
+        .today-cell {
+            animation: active-glow 2.5s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased select-none pb-6">
+
+    <!-- Top Sticky Header -->
+    <header class="bg-slate-900/95 border-b border-slate-800 px-2 py-2 sticky top-0 z-50 backdrop-blur-md shadow-md">
+        <div class="w-full flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-extrabold text-white text-xs shadow">
+                    RAM
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xs text-white leading-none">M.S.R.I.T. <span class="font-normal text-slate-400">MATHS</span></h1>
+                    <p class="text-[9px] text-indigo-400 font-semibold tracking-tight">REGULAR CLASS TIME TABLE</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-xs font-bold text-slate-100">Dr. SRIKANTHA N <span class="text-indigo-400">(SN)</span></p>
+                <p class="text-[9px] text-slate-400 font-mono">TERM: 24.08.26 - 17.12.26</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full px-1 pt-2 space-y-2.5">
+
+        <!-- Course Legend Badges -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 shadow-sm">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-0.5">Course Color Legend</div>
+            <div class="flex flex-wrap gap-1">
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-indigo-600 text-white">CS (CS) DMS</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-600 text-white">M.Tech-IS</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500 text-slate-950">CH (T)</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-purple-600 text-white">CV (T)</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-teal-500 text-slate-950">IM (T)</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-600 text-white">AI&ML B(T)</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-slate-700 text-slate-200">O / O(T)</span>
+            </div>
+        </div>
+
+        <!-- Timetable Matrix Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-1 shadow-2xl">
+            <div class="flex justify-between items-center px-1 mb-1 text-[10px]">
+                <span class="font-extrabold text-slate-200 tracking-wide">FULL WEEK MATRIX</span>
+                <span id="todayIndicator" class="text-[9px] font-bold text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-700/80"></span>
+            </div>
+
+            <!-- Dynamic Timetable Grid -->
+            <div id="timetableGrid" class="tt-grid">
+                <!-- Grid items generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Persistent Notes Text Area -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 shadow-lg space-y-1.5">
+            <div class="flex items-center justify-between px-0.5">
+                <label for="tempNotes" class="text-xs font-extrabold text-indigo-300 tracking-wide flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Temporary Schedule & Notes
+                </label>
+                <span id="saveStatus" class="text-[9px] text-slate-400 font-mono transition-opacity duration-300">Saved</span>
+            </div>
+
+            <textarea id="tempNotes" rows="4" 
+                placeholder="Type temporary schedules, test invigilations, lab room changes, or personal notes here..." 
+                class="w-full bg-slate-950 text-slate-100 text-xs rounded-lg p-2 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none placeholder:text-slate-600 font-sans leading-relaxed"></textarea>
+        </div>
+
+    </main>
+
+    <script>
+        // Exact 8 Time Slots
+        const TIME_SLOTS = [
+            { id: 1, label: '9.00-9.55', display: '9:00<br>9:55' },
+            { id: 2, label: '9.55-10.50', display: '9:55<br>10:50' },
+            { id: 3, label: '11.05-12.00', display: '11:05<br>12:00' },
+            { id: 4, label: '12.00-12.55', display: '12:00<br>12:55' },
+            { id: 5, label: '12.50-1.45', display: '12:50<br>1:45' },
+            { id: 6, label: '1.45-2.40', display: '1:45<br>2:40' },
+            { id: 7, label: '2.40-3.35', display: '2:40<br>3:35' },
+            { id: 8, label: '3.35-4.30', display: '3:35<br>4:30' }
+        ];
+
+        // Exact Data extracted from the Department Timetable document
+        const DAYS_SCHEDULE = [
+            { 
+                day: 'MON', code: 1, 
+                slots: { 
+                    2: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' }, 
+                    3: { title: 'CH<br>(T)', full: 'CH (T)' }, 
+                    5: { title: 'O', full: 'O' }, 
+                    7: { title: 'AI&ML<br>B (T)', full: 'AI&ML B (T)' } 
+                } 
+            },
+            { 
+                day: 'TUE', code: 2, 
+                slots: { 
+                    2: { title: 'O', full: 'O' }, 
+                    4: { title: 'CV<br>(T)', full: 'CV (T)' }, 
+                    7: { title: 'IM<br>(T)', full: 'IM (T)' } 
+                } 
+            },
+            { 
+                day: 'WED', code: 3, 
+                slots: { 
+                    1: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' }, 
+                    3: { title: 'O<br>(T)', full: 'O (T)' }, 
+                    6: { title: 'M.Tech<br>-IS', full: 'M.Tech-IS' }, 
+                    7: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' } 
+                } 
+            },
+            { 
+                day: 'THUR', code: 4, 
+                slots: { 
+                    1: { title: 'M.Tech<br>-IS', full: 'M.Tech-IS' }, 
+                    3: { title: 'O', full: 'O' }, 
+                    7: { title: 'M.Tech<br>-IS', full: 'M.Tech-IS' } 
+                } 
+            },
+            { 
+                day: 'FRI', code: 5, 
+                slots: { 
+                    2: { title: 'O', full: 'O' }, 
+                    4: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' }, 
+                    7: { title: 'M.Tech<br>-IS', full: 'M.Tech-IS' } 
+                } 
+            },
+            { 
+                day: 'SAT', code: 6, 
+                slots: {} 
+            }
+        ];
+
+        // Vibrant high contrast background and text color mappings
+        const COURSE_STYLE_MAP = {
+            'CS (CS) DMS': 'bg-indigo-600 text-white font-extrabold shadow-sm',
+            'M.Tech-IS': 'bg-emerald-600 text-white font-extrabold shadow-sm',
+            'CH (T)': 'bg-amber-400 text-slate-950 font-black shadow-sm',
+            'CV (T)': 'bg-purple-600 text-white font-extrabold shadow-sm',
+            'IM (T)': 'bg-teal-400 text-slate-950 font-black shadow-sm',
+            'AI&ML B (T)': 'bg-rose-600 text-white font-extrabold shadow-sm',
+            'O': 'bg-slate-700 text-slate-100 font-extrabold shadow-sm',
+            'O (T)': 'bg-slate-700 text-slate-100 font-extrabold shadow-sm'
+        };
+
+        function renderTimetableGrid() {
+            const gridContainer = document.getElementById('timetableGrid');
+            const currentDayCode = new Date().getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+            
+            const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT'];
+            document.getElementById('todayIndicator').textContent = 'TODAY: ' + dayNames[currentDayCode];
+
+            let html = '';
+
+            // 1. Top-Left Header Cell (Day/Time)
+            html += `<div class="bg-slate-950 border border-slate-800 rounded flex items-center justify-center font-bold text-[9px] text-slate-400 h-9">DAY</div>`;
+
+            // 2. Render 8 Time Slot Header Columns
+            TIME_SLOTS.forEach(slot => {
+                html += `
+                    <div class="bg-slate-950 border border-slate-800 rounded flex items-center justify-center text-center font-bold text-slate-300 h-9 px-0.5 hdr-time-text">
+                        ${slot.display}
+                    </div>
+                `;
+            });
+
+            // 3. Render Each Day Row
+            DAYS_SCHEDULE.forEach(dayRow => {
+                const isToday = dayRow.code === currentDayCode;
+                const rowGlow = isToday ? 'today-cell bg-indigo-950/40' : '';
+                
+                // Day Label Column
+                html += `
+                    <div class="bg-slate-950 border ${isToday ? 'border-indigo-400 text-indigo-300 font-black' : 'border-slate-800 text-slate-300 font-bold'} rounded flex items-center justify-center text-center h-14 day-label-text ${rowGlow}">
+                        ${dayRow.day}
+                    </div>
+                `;
+
+                // 8 Slots for this Day
+                for (let slotId = 1; slotId <= 8; slotId++) {
+                    const classData = dayRow.slots[slotId];
+                    if (classData) {
+                        const styleClass = COURSE_STYLE_MAP[classData.full] || 'bg-slate-800 text-slate-100 font-bold';
+                        html += `
+                            <div class="${styleClass} rounded p-0.5 flex items-center justify-center text-center h-14 overflow-hidden course-cell-text leading-tight transition-transform active:scale-95">
+                                ${classData.title}
+                            </div>
+                        `;
+                    } else {
+                        // Empty slot
+                        html += `
+                            <div class="bg-slate-950/40 border border-slate-900 rounded h-14 ${rowGlow}"></div>
+                        `;
+                    }
+                }
+            });
+
+            gridContainer.innerHTML = html;
+        }
+
+        // Handle Notes text box persistence
+        function setupNotes() {
+            const textarea = document.getElementById('tempNotes');
+            const saveStatus = document.getElementById('saveStatus');
+            const STORAGE_KEY = 'dr_srikantha_timetable_notes';
+
+            // Load saved notes
+            const savedText = localStorage.getItem(STORAGE_KEY);
+            if (savedText) {
+                textarea.value = savedText;
+            }
+
+            let debounceTimer;
+            const saveHandler = () => {
+                saveStatus.style.opacity = '0.3';
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    localStorage.setItem(STORAGE_KEY, textarea.value);
+                    saveStatus.style.opacity = '1';
+                }, 250);
+            };
+
+            textarea.addEventListener('keyup', saveHandler);
+            textarea.addEventListener('change', saveHandler);
+            textarea.addEventListener('input', saveHandler);
+        }
+
+        window.onload = function() {
+            renderTimetableGrid();
+            setupNotes();
+        };
+    </script>
+</body>
+</html>
