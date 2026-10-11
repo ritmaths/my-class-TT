@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,7 +105,6 @@
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500 text-slate-950">CH (T)</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-purple-600 text-white">CV (T)</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-teal-500 text-slate-950">IM (T)</span>
-                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-600 text-white">AI&ML B(T)</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-slate-700 text-slate-200">O / O(T)</span>
             </div>
         </div>
@@ -162,8 +161,7 @@
                 slots: { 
                     2: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' }, 
                     3: { title: 'CH<br>(T)', full: 'CH (T)' }, 
-                    5: { title: 'O', full: 'O' }, 
-                    7: { title: 'AI&ML<br>B (T)', full: 'AI&ML B (T)' } 
+                    5: { title: 'O', full: 'O' }
                 } 
             },
             { 
@@ -178,7 +176,7 @@
                 day: 'WED', code: 3, 
                 slots: { 
                     1: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' }, 
-                    3: { title: 'O<br>(T)', full: 'O (T)' }, 
+                    3: { title: 'O (T)<br><span class="text-[8px] font-normal opacity-90"></span>', full: 'O (T)', colSpan: 2 }, 
                     6: { title: 'M.Tech<br>-IS', full: 'M.Tech-IS' }, 
                     7: { title: 'CS (CS)<br>DMS', full: 'CS (CS) DMS' } 
                 } 
@@ -212,7 +210,6 @@
             'CH (T)': 'bg-amber-400 text-slate-950 font-black shadow-sm',
             'CV (T)': 'bg-purple-600 text-white font-extrabold shadow-sm',
             'IM (T)': 'bg-teal-400 text-slate-950 font-black shadow-sm',
-            'AI&ML B (T)': 'bg-rose-600 text-white font-extrabold shadow-sm',
             'O': 'bg-slate-700 text-slate-100 font-extrabold shadow-sm',
             'O (T)': 'bg-slate-700 text-slate-100 font-extrabold shadow-sm'
         };
@@ -251,20 +248,27 @@
                 `;
 
                 // 8 Slots for this Day
-                for (let slotId = 1; slotId <= 8; slotId++) {
+                let slotId = 1;
+                while (slotId <= 8) {
                     const classData = dayRow.slots[slotId];
                     if (classData) {
                         const styleClass = COURSE_STYLE_MAP[classData.full] || 'bg-slate-800 text-slate-100 font-bold';
+                        const colSpanAttr = classData.colSpan ? `style="grid-column: span ${classData.colSpan};"` : '';
+                        
                         html += `
-                            <div class="${styleClass} rounded p-0.5 flex items-center justify-center text-center h-14 overflow-hidden course-cell-text leading-tight transition-transform active:scale-95">
+                            <div ${colSpanAttr} class="${styleClass} rounded p-0.5 flex items-center justify-center text-center h-14 overflow-hidden course-cell-text leading-tight transition-transform active:scale-95">
                                 ${classData.title}
                             </div>
                         `;
+                        
+                        // Advance loop by column span if merged
+                        slotId += (classData.colSpan || 1);
                     } else {
                         // Empty slot
                         html += `
                             <div class="bg-slate-950/40 border border-slate-900 rounded h-14 ${rowGlow}"></div>
                         `;
+                        slotId++;
                     }
                 }
             });
@@ -306,3 +310,4 @@
     </script>
 </body>
 </html>
+```
